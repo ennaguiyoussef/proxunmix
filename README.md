@@ -1,2 +1,7 @@
 # proxunmix
-Démélange de spectres hyperspectraux (Y = MA + bruit) par optimisation proximale : FISTA codé à la main, comparé aux moindres carrés, à NNLS et à un FISTA déroulé (PyTorch). Données synthétiques imitant des tissus biologiques (protéine, lipide, collagène).
+
+**Le problème :** démélanger des spectres hyperspectraux (Y = MA + bruit) pour retrouver la composition de chaque pixel.
+
+**La méthode :** optimisation proximale (FISTA), comparée à NNLS et à un réseau qui déroule FISTA.
+
+**L'état :** Projet en cours – données synthétiques imitant des tissus musculaires.
