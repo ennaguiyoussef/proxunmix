@@ -1,0 +1,4 @@
+.venv
+
+# Données générées (trop lourdes, reproductibles avec le code)
+data/
