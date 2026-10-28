@@ -2,3 +2,7 @@
 
 # Données générées (trop lourdes, reproductibles avec le code)
 data/
+
+
+__pycache__/
+*.py[cod]
