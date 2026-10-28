@@ -3,6 +3,7 @@ import numpy as np
 from src.synthetic import axe_spectral, pic_gaussien, pic_lorentzien
 from src.synthetic import spectres_purs
 from src.synthetic import abondances
+from src.synthetic import melange
 
 
 def test_axe_spectral():
@@ -75,3 +76,32 @@ def test_regions_saine_et_malade():
     proteine_malade = A[0, malade].mean()
     assert proteine_sain > proteine_malade
     assert np.isclose(proteine_sain, 0.8, atol=0.02)
+    
+
+
+
+def _donnees(snr_db=30, amplitude_fond=0.0, graine=0):
+    axe = axe_spectral()
+    M = spectres_purs(axe)
+    A, _ = abondances(taille=16, graine=graine)
+    return axe, M, A, melange(axe, M, A, snr_db, amplitude_fond, graine)
+
+
+def test_melange_forme():
+    axe, M, A, (Y, Y_propre, fond) = _donnees()
+    assert Y.shape == (1024, 16 * 16)
+    assert np.allclose(Y_propre, M @ A)
+    assert np.all(fond == 0)   # amplitude_fond = 0 par défaut
+
+
+def test_snr_respecte():
+    _, _, _, (Y, Y_propre, fond) = _donnees(snr_db=20)
+    bruit = Y - Y_propre - fond
+    snr_mesure = 10 * np.log10(np.mean(Y_propre ** 2) / np.mean(bruit ** 2))
+    assert np.isclose(snr_mesure, 20, atol=0.2)
+
+
+def test_fond_positif_quand_active():
+    _, _, _, (_, _, fond) = _donnees(amplitude_fond=0.3)
+    assert np.all(fond >= 0)
+    assert fond.max() > 0    

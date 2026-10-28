@@ -64,3 +64,29 @@ def abondances(taille=64, alpha_sain=(8, 1, 1), alpha_malade=(3, 3, 3), graine=0
     A[:, ~malade] = rng.dirichlet(alpha_sain, size=np.sum(~malade)).T
     A[:, malade] = rng.dirichlet(alpha_malade, size=np.sum(malade)).T
     return A, malade
+
+
+
+def melange(axe, M, A, snr_db=30, amplitude_fond=0.0, graine=0):
+    """Génère Y = M @ A + fond + bruit.
+
+    Renvoie (Y, Y_propre, fond), chacun de taille len(axe) × nombre de pixels.
+    """
+    rng = np.random.default_rng(graine)
+    n_pixels = A.shape[1]
+
+    # 1. Mélange linéaire propre
+    Y_propre = M @ A
+
+    # 2. Fond lisse : une large gaussienne dont l'amplitude varie selon le pixel
+    forme = pic_gaussien(axe, centre=1500, largeur=700, amplitude=1.0)
+    amplitudes = amplitude_fond * rng.uniform(0.5, 1.5, size=n_pixels)
+    fond = np.outer(forme, amplitudes)
+
+    # 3. Bruit gaussien réglé par le SNR (calculé sur le signal propre)
+    puissance_signal = np.mean(Y_propre ** 2)
+    sigma = np.sqrt(puissance_signal / 10 ** (snr_db / 10))
+    bruit = rng.normal(0.0, sigma, size=Y_propre.shape)
+
+    Y = Y_propre + fond + bruit
+    return Y, Y_propre, fond
