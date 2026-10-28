@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.optimize import nnls
-from src.prox import projection_positive
+from src.prox import projection_positive, projection_simplexe
 
 
 def moindres_carres(M, Y):
@@ -51,9 +51,16 @@ def gradient_projete(M, Y, lam=0.0, n_iter=500, tol=1e-6):
     return A, historique
 
 
-def fista(M, Y, lam=0.0, n_iter=500, tol=1e-6, redemarrage=False):
+def fista(M, Y, lam=0.0, n_iter=500, tol=1e-6, redemarrage=False, contrainte="positif"):
     """FISTA (Beck et Teboulle, 2009), avec redémarrage adaptatif en option
-    (O'Donoghue et Candès, 2015)."""
+    (O'Donoghue et Candès, 2015).
+
+    contrainte = "positif"  : A ≥ 0 (avec pénalité λ||A||₁)
+    contrainte = "simplexe" : chaque colonne ≥ 0 et de somme 1 (λ n'a alors aucun effet)
+    """
+    if contrainte not in ("positif", "simplexe"):
+        raise ValueError(f"contrainte inconnue : {contrainte}")
+
     gamma = pas_lipschitz(M)
     MtM, MtY, normeY2 = M.T @ M, M.T @ Y, np.sum(Y ** 2)
     A = np.zeros((M.shape[1], Y.shape[1]))
@@ -63,8 +70,13 @@ def fista(M, Y, lam=0.0, n_iter=500, tol=1e-6, redemarrage=False):
 
     for _ in range(n_iter):
         A_ancien = A
-        gradient = MtM @ Z - MtY
-        A = projection_positive(Z - gamma * gradient - gamma * lam)
+        V = Z - gamma * (MtM @ Z - MtY)          # pas de gradient
+
+        if contrainte == "positif":
+            A = projection_positive(V - gamma * lam)
+        else:
+            A = projection_simplexe(V)
+
         historique.append(objectif(MtM, MtY, normeY2, A, lam))
 
         # Redémarrage adaptatif : si l'objectif remonte, on annule l'élan
