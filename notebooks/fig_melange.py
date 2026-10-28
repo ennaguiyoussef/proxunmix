@@ -7,7 +7,7 @@ M = spectres_purs(axe)
 A, malade = abondances(taille=64, graine=0)
 Y, Y_propre, fond = melange(axe, M, A, snr_db=20, amplitude_fond=0.3, graine=0)
 
-p = 0  # indice d'un pixel (le premier, dans la région saine)
+p = 32  # indice d'un pixel (le premier, dans la région saine)
 
 plt.figure(figsize=(10, 4))
 plt.plot(axe, Y[:, p], color="lightgrey", label="propre + fond + bruit (SNR 20 dB)")
